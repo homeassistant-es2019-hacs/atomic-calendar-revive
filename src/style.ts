@@ -52,6 +52,9 @@ export const styles: CSSResultGroup = css`
 		grid-template-columns: 0.5fr 2fr;
 		grid-gap: 10px;
 	}
+	.single-event-container.last-event {
+		padding-bottom: 8px;
+	}
 	.event-left,
 	.event-right {
 		grid-row: 1;
@@ -83,6 +86,10 @@ export const styles: CSSResultGroup = css`
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
+	}
+	.event-right.dimmed {
+		opacity: var(--finished-event-opacity);
+		filter: var(--finished-event-filter);
 	}
 	.event-right-top,
 	.event-right-bottom {
@@ -258,6 +265,9 @@ export const styles: CSSResultGroup = css`
 		width: 100%;
 		color: var(--cal-day-color);
 	}
+	td.cal.clicked {
+		background-color: var(--cal-active-event-bg);
+	}
 
 	.calDay {
 		height: 38px;
@@ -318,6 +328,10 @@ export const styles: CSSResultGroup = css`
 	.summary-event-div {
 		padding-top: 3px;
 	}
+	.summary-event-div.dimmed {
+		opacity: var(--finished-event-opacity);
+		filter: var(--finished-event-filter);
+	}
 
 	.bullet-event-div-accepted {
 		-webkit-border-radius: 8px;
@@ -356,6 +370,11 @@ export const styles: CSSResultGroup = css`
 		padding: 0 4px;
 		margin: 5px 0;
 		line-height: 16px;
+	}
+	.summary-fullday-div-accepted.dimmed,
+	.summary-fullday-div-declined.dimmed {
+		opacity: var(--finished-event-opacity);
+		filter: var(--finished-event-filter);
 	}
 
 	.summary-fullday-div-declined {

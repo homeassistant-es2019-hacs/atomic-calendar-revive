@@ -1,6 +1,7 @@
 {
 	"name": "atomic-calendar-revive",
 	"version": "10.1.0-beta.1",
+	"private": true,
 	"description": "Calendar Card for Home Assistant",
 	"main": "atomic-calendar-revive.js",
 	"scripts": {
@@ -38,8 +39,9 @@
 		"@semantic-release/changelog": "^6.0.3",
 		"@semantic-release/exec": "^6.0.3",
 		"@semantic-release/git": "^10.0.1",
-		"@typescript-eslint/eslint-plugin": "^7.13.1",
-		"@typescript-eslint/parser": "^7.13.1",
+		"@types/node": "^22.0.0",
+		"@typescript-eslint/eslint-plugin": "^8.0.0",
+		"@typescript-eslint/parser": "^8.0.0",
 		"babel-preset-minify": "^0.5.2",
 		"commitizen": "^4.3.0",
 		"conventional-changelog-conventionalcommits": "^8.0.0",
@@ -81,7 +83,7 @@
 	},
 	"resolutions": {
 		"lit": "^3.0.2",
-		"@lit/reactive-element": "2.0.1"
+		"@lit/reactive-element": "2.1.0"
 	},
 	"bugs": {
 		"url": "https://github.com/totaldebug/atomic-calendar-revive/issues"

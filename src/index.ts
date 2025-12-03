@@ -68,6 +68,9 @@ export class AtomicCalendarRevive extends LitElement {
 	language: string;
 	failedEvents!: object | unknown[];
 
+	// Explicitly declare requestUpdate from LitElement
+	declare requestUpdate: () => void;
+
 	constructor() {
 		super();
 
@@ -388,10 +391,7 @@ export class AtomicCalendarRevive extends LitElement {
 					></progress>`;
 				}
 
-				const finishedEventsStyle =
-					event.isFinished && this._config.dimFinishedEvents
-						? `opacity: ` + this._config.finishedEventOpacity + `; filter: ` + this._config.finishedEventFilter + `;`
-						: ``;
+
 
 				// Show the hours
 				const hoursHTML = this._config.showHours
@@ -415,8 +415,6 @@ export class AtomicCalendarRevive extends LitElement {
 					timeUntilRemaining = html``;
 				}
 
-				const lastEventStyle = !this._config.compactMode && i == arr.length - 1 ? 'padding-bottom: 8px;' : '';
-
 				const showDatePerEvent = this._config.showDatePerEvent ? true : !!(i === 0);
 
 				// check and set the date format
@@ -427,6 +425,7 @@ export class AtomicCalendarRevive extends LitElement {
 				const dayClassTodayEvent = event.startTimeToShow.isSame(dayjs(), 'day') ? `current-day` : ``;
 				const compactMode = this._config.compactMode ? `compact` : ``;
 				const hideDate = this._config.showEventDate ? `` : `hide-date`;
+				const lastEventClass = !this._config.compactMode && i == arr.length - 1 ? 'last-event' : '';
 
 				const eventLeft =
 					this._config.showEventDate === true
@@ -435,9 +434,16 @@ export class AtomicCalendarRevive extends LitElement {
 								${eventDate}
 							</div>`
 						: html``;
-				return html`<div class="single-event-container ${compactMode} ${dayWrap} ${hideDate}" style="${lastEventStyle}">
+				const completedClass = event.isFinished ? 'completed' : '';
+				const inProgressClass = event.isRunning ? 'in-progress' : '';
+				const dimmedClass = event.isFinished && this._config.dimFinishedEvents ? 'dimmed' : '';
+				return html`<div
+					class="single-event-container ${compactMode} ${dayWrap} ${hideDate} ${completedClass} ${inProgressClass} ${lastEventClass}"
+					style="--finished-event-opacity: ${this._config.finishedEventOpacity}; --finished-event-filter: ${this._config.finishedEventFilter};"
+					data-calendar-entity="${event.entity.entity}"
+				>
 					${eventLeft}
-					<div class="event-right" style="${finishedEventsStyle}">
+					<div class="event-right ${dimmedClass}">
 						${currentEventLine}
 						<div class="event-right-top">
 							${getTitleHTML(this._config, event, this.hass, this.modeToggle)}
@@ -512,16 +518,17 @@ export class AtomicCalendarRevive extends LitElement {
 		this.eventSummary = dayEvents.map((event: EventClass) => {
 			const eventColor =
 				typeof event.entityConfig.color != 'undefined' ? event.entityConfig.color : this._config.defaultCalColor;
-			const finishedEventsStyle =
-				event.isFinished && this._config.dimFinishedEvents
-					? `opacity: ` + this._config.finishedEventOpacity + `; filter: ` + this._config.finishedEventFilter + `;`
-					: ``;
+			const dimmedClass = event.isFinished && this._config.dimFinishedEvents ? 'dimmed' : '';
 
 			// is it a full day event? if so then use border instead of bullet else, use a bullet
 			if (event.isAllDayEvent) {
 				const bulletType: string = event.isDeclined ? 'summary-fullday-div-declined' : 'summary-fullday-div-accepted';
 
-				return html`<div class="${bulletType}" style="border-color:  ${eventColor}; ${finishedEventsStyle}">
+				return html`<div
+					class="${bulletType} ${dimmedClass}"
+					style="border-color: ${eventColor}; --finished-event-opacity: ${this._config
+						.finishedEventOpacity}; --finished-event-filter: ${this._config.finishedEventFilter};"
+				>
 					<div aria-hidden="true">
 						${getTitleHTML(this._config, event, this.hass, this.modeToggle)}
 						${getCalendarLocationHTML(this._config, event)}
@@ -536,7 +543,11 @@ export class AtomicCalendarRevive extends LitElement {
 				const bulletType: string = event.isDeclined ? 'bullet-event-div-declined' : 'bullet-event-div-accepted';
 
 				return html`
-					<div class="summary-event-div" style="color: ${eventColor}; ${finishedEventsStyle}">
+					<div
+						class="summary-event-div ${dimmedClass}"
+						style="color: ${eventColor}; --finished-event-opacity: ${this._config
+							.finishedEventOpacity}; --finished-event-filter: ${this._config.finishedEventFilter};"
+					>
 						<div class="${bulletType}" style="border-color: ${eventColor}"></div>
 						${eventTime} - ${getTitleHTML(this._config, event, this.hass, this.modeToggle)}
 						${getCalendarLocationHTML(this._config, event)}
@@ -564,9 +575,7 @@ export class AtomicCalendarRevive extends LitElement {
 			const dayClassToday = dayDate.isSame(dayjs(), 'day') ? `currentDay` : ``;
 			const dayStyleSat = dayDate.isoWeekday() == 6 ? `weekendSat` : ``;
 			const dayStyleSun = dayDate.isoWeekday() == 7 ? `weekendSun` : ``;
-			const dayStyleClicked = dayDate.isSame(dayjs(this.clickedDate), 'day')
-				? `background-color: ${this._config.calActiveEventBackgroundColor};`
-				: ``;
+			const dayClassClicked = dayDate.isSame(dayjs(this.clickedDate), 'day') ? `clicked` : ``;
 
 			if (dayDate.isSame(dayjs(), 'day') && !this.clickedDate) {
 				this.handleCalendarEventSummary(day, false);
@@ -576,9 +585,9 @@ export class AtomicCalendarRevive extends LitElement {
 					${i % 7 === 0 ? html`<tr class="cal"></tr>` : ''}
 					<td
 						@click="${() => this.handleCalendarEventSummary(day, true)}"
-						class="cal ${dayStyleSat} ${dayStyleSun} ${dayStyleOtherMonth}"
-						style="${dayStyleClicked} --cal-grid-color: ${this._config.calGridColor}; --cal-day-color: ${this._config
-							.calDayColor}"
+						class="cal ${dayStyleSat} ${dayStyleSun} ${dayStyleOtherMonth} ${dayClassClicked}"
+						style="--cal-grid-color: ${this._config.calGridColor}; --cal-day-color: ${this._config
+							.calDayColor}; --cal-active-event-bg: ${this._config.calActiveEventBackgroundColor};"
 					>
 						<div class="calDay">
 							<div class="${dayClassToday}" style="position: relative; top: 5%;">${day.date.date()}</div>
