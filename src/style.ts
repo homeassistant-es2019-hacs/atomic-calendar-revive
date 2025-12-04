@@ -55,16 +55,8 @@ export const styles: CSSResultGroup = css`
 	.single-event-container.last-event {
 		padding-bottom: 8px;
 	}
-	.event-left,
 	.event-right {
 		grid-row: 1;
-	}
-	.event-left {
-		grid-column: 1;
-		justify-content: center;
-		color: var(--primary-text-color);
-		display: flex;
-		flex-direction: row;
 	}
 	.event-date-day,
 	.event-date-month,

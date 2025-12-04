@@ -417,9 +417,13 @@ export class AtomicCalendarRevive extends LitElement {
 
 				const showDatePerEvent = this._config.showDatePerEvent ? true : !!(i === 0);
 
-				// check and set the date format
+				// check and set the date format - now with semantic classes
 				const eventDate = showDatePerEvent
-					? html`<div class="event-date-day">${event.startTimeToShow.format(this._config.eventDateFormat)}</div>`
+					? html`<div class="event-date-day">
+							<span class="event-date-day-num">${event.startTimeToShow.format('D')}</span>
+							<span class="event-date-month">${event.startTimeToShow.format('MMM')}</span>
+							<span class="event-date-year">${event.startTimeToShow.format('YYYY')}</span>
+						</div>`
 					: html``;
 
 				const dayClassTodayEvent = event.startTimeToShow.isSame(dayjs(), 'day') ? `current-day` : ``;
@@ -429,7 +433,7 @@ export class AtomicCalendarRevive extends LitElement {
 
 				const eventLeft =
 					this._config.showEventDate === true
-						? html`<div class="event-left ${dayClassTodayEvent}">
+						? html`<div class="${dayClassTodayEvent}">
 								<!--Show the event date, see eventDateFormat-->
 								${eventDate}
 							</div>`
@@ -437,12 +441,11 @@ export class AtomicCalendarRevive extends LitElement {
 				const completedClass = event.isFinished ? 'completed' : '';
 				const inProgressClass = event.isRunning ? 'in-progress' : '';
 				const dimmedClass = event.isFinished && this._config.dimFinishedEvents ? 'dimmed' : '';
-				return html`<div
+				return html`${eventLeft}<div
 					class="single-event-container ${compactMode} ${dayWrap} ${hideDate} ${completedClass} ${inProgressClass} ${lastEventClass}"
 					style="--finished-event-opacity: ${this._config.finishedEventOpacity}; --finished-event-filter: ${this._config.finishedEventFilter};"
-					data-calendar-entity="${event.entity.entity}"
+					data-calendar-entity="${event.rawEvent.calendarEntity || ''}"
 				>
-					${eventLeft}
 					<div class="event-right ${dimmedClass}">
 						${currentEventLine}
 						<div class="event-right-top">
