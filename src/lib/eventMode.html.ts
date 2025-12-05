@@ -143,16 +143,12 @@ export function getDescription(config: atomicCardConfig, event: EventClass) {
 		if (!isHtml(event.description) && config.descLength && event.description.length >= config.descLength) {
 			description = html`${event.description.slice(0, config.descLength)}`;
 		}
-		return html`<div class="event-right">
-			<div class="event-main">
-				<div
-					class="event-description"
-					style="--description-color: ${config.descColor}; --description-size: ${config.descSize}%"
-				>
-					${description}
-				</div>
-			</div>
-		</div>`;
+		return html`<p
+			class="event-description"
+			style="--description-color: ${config.descColor}; --description-size: ${config.descSize}%"
+		>
+			${description}
+		</p>`;
 	}
 	return html``;
 }
