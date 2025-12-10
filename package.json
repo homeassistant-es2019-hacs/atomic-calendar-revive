@@ -21,9 +21,9 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/totaldebug/atomic-calendar-revive.git"
+		"url": "git+https://github.com/homeassistant-es2019-hacs/atomic-calendar-revive.git"
 	},
-	"author": "Steven Marks",
+	"author": "Steven Marks, Vladimir Dudas",
 	"license": "ISC",
 	"devDependencies": {
 		"@babel/cli": "^7.24.7",
@@ -89,9 +89,9 @@
 		"@lit/reactive-element": "2.1.0"
 	},
 	"bugs": {
-		"url": "https://github.com/totaldebug/atomic-calendar-revive/issues"
+		"url": "https://github.com/homeassistant-es2019-hacs/atomic-calendar-revive/issues"
 	},
-	"homepage": "https://github.com/totaldebug/atomic-calendar-revive#readme",
+	"homepage": "https://github.com/homeassistant-es2019-hacs/atomic-calendar-revive#readme",
 	"config": {
 		"commitizen": {
 			"path": "./node_modules/cz-conventional-changelog"
