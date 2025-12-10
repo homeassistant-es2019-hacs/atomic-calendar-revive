@@ -14,8 +14,10 @@
 		"rollup": "rollup -c",
 		"start": "rollup -c --watch --bundleConfigAsCjs",
 		"build": "rollup -c --bundleConfigAsCjs",
+		"transpile-dist": "./node_modules/.bin/babel dist --extensions \".js\" --out-dir dist --presets @babel/preset-env --no-babelrc && node scripts/replace-bigint.cjs",
 		"watch": "rollup -c rollup-dev.config.mjs  --bundleConfigAsCjs",
-		"commit": "cz"
+		"commit": "cz",
+		"verify:es2019": "npx es-check --module es2019 \"dist/**/*.js\" \"dist/*.js\""
 	},
 	"repository": {
 		"type": "git",
@@ -56,7 +58,8 @@
 		"rollup-plugin-serve": "^2.0.3",
 		"rollup-plugin-typescript2": "^0.36.0",
 		"semantic-release": "^24.0.0",
-		"typescript-eslint": "^8.39.1"
+		"typescript-eslint": "^8.39.1",
+		"es-check": "^7.0.0"
 	},
 	"dependencies": {
 		"@formatjs/icu-messageformat-parser": "2.11.2",
