@@ -47,49 +47,85 @@ export const styles: CSSResultGroup = css`
 	/* END HEADER */
 
 	/* START EVENT MODE */
-	.single-event-container {
+	/* Day container */
+	section.day-container {
 		display: grid;
 		grid-template-columns: 0.5fr 2fr;
 		grid-gap: 10px;
-	}
-	.event-left,
-	.event-right {
-		grid-row: 1;
-	}
-	.event-left {
-		grid-column: 1;
-		justify-content: center;
 		color: var(--primary-text-color);
+		padding: 2px 0 4px 0;
+	}
+	section.day-container:not(:first-child) {
+		border-top: 1px solid;
+	}
+
+	/* Day date display (shown once per day) */
+	time.day-date {
+		grid-column: 1;
+		grid-row: 1;
+		justify-content: center;
 		display: flex;
 		flex-direction: row;
+		gap: 4px;
+		align-self: start;
 	}
-	.event-date-day,
-	.event-date-month,
-	.event-date-week-day {
-		margin-right: 4px;
+	time.day-date .day,
+	time.day-date .month,
+	time.day-date .year {
+		display: inline-block;
 	}
+
+	/* Day events container */
+	div.day-events {
+		grid-column: 2;
+		grid-row: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	/* Individual event */
+	article.event {
+		color: var(--primary-text-color);
+	}
+	article.event.last-event {
+		padding-bottom: 8px;
+	}
+	article.event.compact {
+		padding: 1px;
+		vertical-align: top;
+	}
+
+	/* Week number */
 	.week-number {
 		color: var(--primary-color);
-		-webkit-border-radius: 5px;
 		border-radius: 5px;
 		border: 2px solid;
 		margin: 5px 0;
 		width: 6em;
 		text-align: center;
 	}
-	.event-right {
-		grid-column: 2;
-		color: var(--primary-text-color);
+
+	/* Event content section */
+	section.event-content {
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
 	}
-	.event-right-top,
-	.event-right-bottom {
+	section.event-content.dimmed {
+		opacity: var(--finished-event-opacity);
+		filter: var(--finished-event-filter);
+	}
+
+	/* Event header and footer */
+	header.event-header,
+	footer.event-footer {
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
 	}
+
+	/* Event title */
 	.event-title {
 		user-select: text;
 	}
@@ -99,10 +135,18 @@ export const styles: CSSResultGroup = css`
 	.event-title.Calendar {
 		display: inline-block;
 	}
-	.event-location {
+
+	/* Event meta (location, calendar name, time) */
+	aside.event-meta {
 		text-align: right;
-		display: inline-block;
-		vertical-align: top;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 2px;
+	}
+
+	/* Location */
+	.event-location {
 		user-select: text;
 		overflow-wrap: anywhere;
 	}
@@ -119,17 +163,32 @@ export const styles: CSSResultGroup = css`
 		font-size: var(--location-link-size);
 		user-select: text;
 	}
+
+	/* Calendar name */
+	span.calendar-name {
+		color: var(--cal-color);
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+	span.calendar-name ha-icon {
+		--mdc-icon-size: 15px;
+	}
+
+	/* Time displays */
+	time.event-time,
 	.hours {
 		color: var(--time-color);
 		font-size: var(--time-size);
 		display: inline-block;
 	}
-	.relative-time {
+	time.relative-time {
 		color: var(--time-color);
 		font-size: var(--time-size);
-		float: right;
 		padding-left: 5px;
 	}
+
+	/* Event description */
 	.event-description {
 		display: flex;
 		justify-content: space-between;
@@ -139,39 +198,26 @@ export const styles: CSSResultGroup = css`
 		overflow-wrap: anywhere;
 		user-select: text;
 	}
+
+	/* Hidden events notice */
 	.hidden-events {
 		color: var(--primary-text-color);
 	}
-	.daywrap {
-		padding: 2px 0 4px 0;
-		border-top: 1px solid;
-	}
+
+	/* Legacy support for table daywrap */
 	.daywrap > td {
 		padding-top: 8px;
 	}
-	.hide-date {
-		grid-template-columns: 0 1fr !important;
-	}
-	.compact {
-		padding: 1px 1px 1px 1px;
-		vertical-align: top;
-	}
-	/* END EVENT MODE */
 
-	hr.event {
+	/* Event separator line */
+	hr.event-separator {
 		color: var(--event-bar-color);
+		border-color: var(--event-bar-color);
 		margin: -8px 0px 2px 0px;
 		border-width: 2px 0 0 0;
 	}
-	.event-cal-name-icon {
-		--mdc-icon-size: 15px;
-	}
 
-	.eventBar {
-		margin-top: -10px;
-		margin-bottom: 0px;
-	}
-
+	/* Progress bar */
 	progress {
 		border-radius: 2px;
 		width: 100%;
@@ -179,13 +225,14 @@ export const styles: CSSResultGroup = css`
 		box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
 	}
 	progress::-webkit-progress-bar {
-		background-color: var(--progress-bar-bg);
+		background-color: var(--progress-bar-bg-color);
 		border-radius: 2px;
 	}
 	progress::-webkit-progress-value {
-		background-color: var(--progress-bar);
+		background-color: var(--progress-bar-color);
 		border-radius: 2px;
 	}
+	/* END EVENT MODE */
 
 	ha-button-toggle-group {
 		color: var(--primary-color);
@@ -258,12 +305,28 @@ export const styles: CSSResultGroup = css`
 		width: 100%;
 		color: var(--cal-day-color);
 	}
+	td.cal.clicked {
+		background-color: var(--cal-active-event-bg);
+	}
 
 	.calDay {
 		height: 38px;
 		font-size: 95%;
 		max-width: 38px;
 		margin: auto;
+	}
+
+	.calDay .iconDiv {
+		white-space: nowrap;
+	}
+
+	.calendar-icon-container {
+		display: inline-block;
+		margin-right: 10px; /* adjust this value to fit your layout */
+	}
+
+	.calendar-icon-container:nth-child(4n) {
+		margin-right: 0;
 	}
 
 	.currentDay {
@@ -305,6 +368,10 @@ export const styles: CSSResultGroup = css`
 	.summary-event-div {
 		padding-top: 3px;
 	}
+	.summary-event-div.dimmed {
+		opacity: var(--finished-event-opacity);
+		filter: var(--finished-event-filter);
+	}
 
 	.bullet-event-div-accepted {
 		-webkit-border-radius: 8px;
@@ -343,6 +410,11 @@ export const styles: CSSResultGroup = css`
 		padding: 0 4px;
 		margin: 5px 0;
 		line-height: 16px;
+	}
+	.summary-fullday-div-accepted.dimmed,
+	.summary-fullday-div-declined.dimmed {
+		opacity: var(--finished-event-opacity);
+		filter: var(--finished-event-filter);
 	}
 
 	.summary-fullday-div-declined {

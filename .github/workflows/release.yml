@@ -22,6 +22,12 @@ jobs:
     - name: Install dependencies
       run: yarn install
 
+    - name: Build and verify ES2019 compatibility
+      run: |
+        yarn run build
+        yarn run transpile-dist
+        yarn run verify:es2019
+
     - name: Run Semantic Release
       run: npx semantic-release --debug
       env:

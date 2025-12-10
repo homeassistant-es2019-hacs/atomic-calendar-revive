@@ -1,5 +1,4 @@
-﻿/* eslint-disable import/no-named-as-default-member */
-import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
+﻿import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -69,13 +68,12 @@ export class AtomicCalendarRevive extends LitElement {
 	language: string;
 	failedEvents!: object | unknown[];
 
+	// Explicitly declare requestUpdate from LitElement
+	declare requestUpdate: () => void;
+
 	constructor() {
 		super();
-		this.lastCalendarUpdateTime;
-		this.lastEventsUpdateTime;
-		this.lastHTMLUpdateTime;
-		this.events;
-		this.failedEvents;
+
 		this.content = html``;
 		this.shouldUpdateHtml = true;
 		this.errorMessage = html``;
@@ -83,7 +81,6 @@ export class AtomicCalendarRevive extends LitElement {
 		this.selectedMonth = dayjs();
 		this.refreshCalEvents = true;
 		this.monthToGet = dayjs().format('MM');
-		this.month;
 		this.showLoader = false;
 		this.eventSummary = html`&nbsp;`;
 		this.firstrun = true;
@@ -346,35 +343,35 @@ export class AtomicCalendarRevive extends LitElement {
 			currentWeek = weekNumberResults.currentWeek;
 
 			const dayEvents = day;
+			const firstEvent = dayEvents[0];
+			const dayDate = firstEvent.startTimeToShow;
+			const isDayToday = dayDate.isSame(dayjs(), 'day');
+
+			// Day date header (shown once per day)
+			const dayDateHeader = this._config.showEventDate
+				? html`<time class="day-date" datetime="${dayDate.format('YYYY-MM-DD')}">
+						<span class="day">${dayDate.format('D')}</span>
+						<span class="month">${dayDate.format('MMM')}</span>
+						<span class="year">${dayDate.format('YYYY')}</span>
+					</time>`
+				: html``;
 
 			/**
 			 * Loop through each event and add html
 			 */
 			const htmlEvents = dayEvents.map((event: EventClass, i, arr) => {
-				const dayWrap = i == 0 && di > 0 ? 'daywrap' : '';
 				const isEventNext = !!(
 					di == 0 &&
 					event.startDateTime.isAfter(dayjs()) &&
 					(i == 0 || !arr[i - 1].startDateTime.isAfter(dayjs()))
 				);
-				//show line before next event
-				const currentEventLine =
-					this._config.showCurrentEventLine && isEventNext
-						? html`<div class="eventBar">
-								<hr class="event" style="--event-bar-color: ${this._config.eventBarColor} " />
-							</div>`
-						: ``;
+
+				// Get calendar entity name and remove 'calendar.' prefix
+				const calendarEntity = event.rawEvent.calendarEntity || '';
+				const calendarName = calendarEntity.replace(/^calendar\./, '');
 
 				const calColor =
 					typeof event.entityConfig.color != 'undefined' ? event.entityConfig.color : this._config.defaultCalColor;
-
-				//show calendar name
-				const eventCalName =
-					event.entityConfig.name && this._config.showCalendarName
-						? html`<div class="event-cal-name" style="color: ${calColor};">
-								<ha-icon icon="mdi:calendar" class="event-cal-name-icon"></ha-icon>&nbsp;${event.originName}
-							</div>`
-						: ``;
 
 				//show current event progress bar
 				let progressBar = html``;
@@ -386,29 +383,14 @@ export class AtomicCalendarRevive extends LitElement {
 					const eventDuration = event.endDateTime.diff(event.startDateTime, 'minutes');
 					const eventProgress = dayjs().diff(event.startDateTime, 'minutes');
 					const eventPercentProgress = (eventProgress * 100) / eventDuration / 100;
-					progressBar = html`<progress
-						style="--progress-bar: ${this._config.progressBarColor}; --progress-bar-bg: ${this._config
-							.progressBarBackgroundColor};"
-						value="${eventPercentProgress}"
-						max="1"
-					></progress>`;
+					progressBar = html`<progress value="${eventPercentProgress}" max="1"></progress>`;
 				}
-
-				const finishedEventsStyle =
-					event.isFinished && this._config.dimFinishedEvents
-						? `opacity: ` + this._config.finishedEventOpacity + `; filter: ` + this._config.finishedEventFilter + `;`
-						: ``;
-
-				// Show the hours
-				const hoursHTML = this._config.showHours
-					? html`<div class="hours">${getHoursHTML(this._config, event)}</div>`
-					: html``;
 
 				// Show the relative time
 				let timeUntilRemaining;
 				if (this._config.showRelativeTime || this._config.showTimeRemaining) {
 					const now = dayjs();
-					timeUntilRemaining = html`<div class="relative-time time-remaining">
+					timeUntilRemaining = html`<time class="relative-time">
 						${this._config.showRelativeTime && event.startDateTime.isAfter(now, 'minutes')
 							? `(${event.startDateTime.fromNow()})`
 							: this._config.showTimeRemaining &&
@@ -416,47 +398,64 @@ export class AtomicCalendarRevive extends LitElement {
 								  event.endDateTime.isAfter(now, 'minutes')
 								? `${dayjs.duration(event.endDateTime.diff(now)).humanize()}`
 								: ''}
-					</div>`;
+					</time>`;
 				} else {
 					timeUntilRemaining = html``;
 				}
 
-				const lastEventStyle = !this._config.compactMode && i == arr.length - 1 ? 'padding-bottom: 8px;' : '';
-
-				const showDatePerEvent = this._config.showDatePerEvent ? true : !!(i === 0);
-
-				// check and set the date format
-				const eventDate = showDatePerEvent
-					? html`<div class="event-date-day">${event.startTimeToShow.format(this._config.eventDateFormat)}</div>`
-					: html``;
-
-				const dayClassTodayEvent = event.startTimeToShow.isSame(dayjs(), 'day') ? `current-day` : ``;
 				const compactMode = this._config.compactMode ? `compact` : ``;
-				const hideDate = this._config.showEventDate ? `` : `hide-date`;
+				const lastEventClass = !this._config.compactMode && i == arr.length - 1 ? 'last-event' : '';
+				const completedClass = event.isFinished ? 'completed' : '';
+				const inProgressClass = event.isRunning ? 'in-progress' : '';
+				const dimmedClass = event.isFinished && this._config.dimFinishedEvents ? 'dimmed' : '';
 
-				const eventLeft =
-					this._config.showEventDate === true
-						? html`<div class="event-left ${dayClassTodayEvent}">
-								<!--Show the event date, see eventDateFormat-->
-								${eventDate}
-							</div>`
-						: html``;
-				return html`<div class="single-event-container ${compactMode} ${dayWrap} ${hideDate}" style="${lastEventStyle}">
-					${eventLeft}
-					<div class="event-right" style="${finishedEventsStyle}">
+				//show line before next event
+				const currentEventLine =
+					this._config.showCurrentEventLine && isEventNext ? html`<hr class="event-separator" />` : ``;
+
+				return html`<article
+					class="event ${compactMode} ${completedClass} ${inProgressClass} ${lastEventClass} cal-${calendarName}"
+					data-calendar-entity="${calendarEntity}"
+					style="
+						--cal-color: ${calColor};
+						--finished-event-opacity: ${this._config.finishedEventOpacity};
+						--finished-event-filter: ${this._config.finishedEventFilter};
+						--progress-bar-color: ${this._config.progressBarColor};
+						--progress-bar-bg-color: ${this._config.progressBarBackgroundColor};
+						--event-bar-color: ${this._config.eventBarColor};
+					"
+				>
+					<section class="event-content ${dimmedClass}">
 						${currentEventLine}
-						<div class="event-right-top">
+						<header class="event-header">
 							${getTitleHTML(this._config, event, this.hass, this.modeToggle)}
-							<div class="event-location">
-								${getLocationHTML(this._config, event)} ${eventCalName} ${this._config.hoursOnSameLine ? hoursHTML : ''}
-							</div>
-						</div>
-						<div class="event-right-bottom">${this._config.hoursOnSameLine ? '' : hoursHTML} ${timeUntilRemaining}</div>
+							<aside class="event-meta">
+								${getLocationHTML(this._config, event)}
+								${event.entityConfig.name && this._config.showCalendarName
+									? html`<span class="calendar-name">
+											<ha-icon icon="mdi:calendar"></ha-icon>${event.originName}
+										</span>`
+									: ''}
+								${this._config.showHours && this._config.hoursOnSameLine
+									? html`<time class="event-time">${getHoursHTML(this._config, event)}</time>`
+									: ''}
+							</aside>
+						</header>
+						<footer class="event-footer">
+							${this._config.showHours && !this._config.hoursOnSameLine
+								? html`<time class="event-time">${getHoursHTML(this._config, event)}</time>`
+								: ''}
+							${timeUntilRemaining}
+						</footer>
 						${getDescription(this._config, event)} ${progressBar}
-					</div>
-				</div>`;
+					</section>
+				</article>`;
 			});
-			return html`${this._config.showWeekNumber ? weekNumberResults.currentWeekHTML : ''}${htmlEvents}`;
+
+			return html`<section class="day-container ${isDayToday ? 'current-day' : ''}">
+				${this._config.showWeekNumber ? weekNumberResults.currentWeekHTML : ''} ${dayDateHeader}
+				<div class="day-events">${htmlEvents}</div>
+			</section>`;
 		});
 		const eventnotice = this._config.showHiddenText
 			? this.hiddenEvents > 0
@@ -518,16 +517,17 @@ export class AtomicCalendarRevive extends LitElement {
 		this.eventSummary = dayEvents.map((event: EventClass) => {
 			const eventColor =
 				typeof event.entityConfig.color != 'undefined' ? event.entityConfig.color : this._config.defaultCalColor;
-			const finishedEventsStyle =
-				event.isFinished && this._config.dimFinishedEvents
-					? `opacity: ` + this._config.finishedEventOpacity + `; filter: ` + this._config.finishedEventFilter + `;`
-					: ``;
+			const dimmedClass = event.isFinished && this._config.dimFinishedEvents ? 'dimmed' : '';
 
 			// is it a full day event? if so then use border instead of bullet else, use a bullet
 			if (event.isAllDayEvent) {
 				const bulletType: string = event.isDeclined ? 'summary-fullday-div-declined' : 'summary-fullday-div-accepted';
 
-				return html`<div class="${bulletType}" style="border-color:  ${eventColor}; ${finishedEventsStyle}">
+				return html`<div
+					class="${bulletType} ${dimmedClass}"
+					style="border-color: ${eventColor}; --finished-event-opacity: ${this._config
+						.finishedEventOpacity}; --finished-event-filter: ${this._config.finishedEventFilter};"
+				>
 					<div aria-hidden="true">
 						${getTitleHTML(this._config, event, this.hass, this.modeToggle)}
 						${getCalendarLocationHTML(this._config, event)}
@@ -542,7 +542,11 @@ export class AtomicCalendarRevive extends LitElement {
 				const bulletType: string = event.isDeclined ? 'bullet-event-div-declined' : 'bullet-event-div-accepted';
 
 				return html`
-					<div class="summary-event-div" style="color: ${eventColor}; ${finishedEventsStyle}">
+					<div
+						class="summary-event-div ${dimmedClass}"
+						style="color: ${eventColor}; --finished-event-opacity: ${this._config
+							.finishedEventOpacity}; --finished-event-filter: ${this._config.finishedEventFilter};"
+					>
 						<div class="${bulletType}" style="border-color: ${eventColor}"></div>
 						${eventTime} - ${getTitleHTML(this._config, event, this.hass, this.modeToggle)}
 						${getCalendarLocationHTML(this._config, event)}
@@ -570,9 +574,7 @@ export class AtomicCalendarRevive extends LitElement {
 			const dayClassToday = dayDate.isSame(dayjs(), 'day') ? `currentDay` : ``;
 			const dayStyleSat = dayDate.isoWeekday() == 6 ? `weekendSat` : ``;
 			const dayStyleSun = dayDate.isoWeekday() == 7 ? `weekendSun` : ``;
-			const dayStyleClicked = dayDate.isSame(dayjs(this.clickedDate), 'day')
-				? `background-color: ${this._config.calActiveEventBackgroundColor};`
-				: ``;
+			const dayClassClicked = dayDate.isSame(dayjs(this.clickedDate), 'day') ? `clicked` : ``;
 
 			if (dayDate.isSame(dayjs(), 'day') && !this.clickedDate) {
 				this.handleCalendarEventSummary(day, false);
@@ -582,13 +584,13 @@ export class AtomicCalendarRevive extends LitElement {
 					${i % 7 === 0 ? html`<tr class="cal"></tr>` : ''}
 					<td
 						@click="${() => this.handleCalendarEventSummary(day, true)}"
-						class="cal ${dayStyleSat} ${dayStyleSun} ${dayStyleOtherMonth}"
-						style="${dayStyleClicked} --cal-grid-color: ${this._config.calGridColor}; --cal-day-color: ${this._config
-							.calDayColor}"
+						class="cal ${dayStyleSat} ${dayStyleSun} ${dayStyleOtherMonth} ${dayClassClicked}"
+						style="--cal-grid-color: ${this._config.calGridColor}; --cal-day-color: ${this._config
+							.calDayColor}; --cal-active-event-bg: ${this._config.calActiveEventBackgroundColor};"
 					>
 						<div class="calDay">
 							<div class="${dayClassToday}" style="position: relative; top: 5%;">${day.date.date()}</div>
-							<div>${handleCalendarIcons(day, this.hass)}</div>
+							<div class="iconDiv">${handleCalendarIcons(day, this.hass)}</div>
 						</div>
 					</td>
 					${i && i % 6 === 0 ? html`</tr>` : ''}

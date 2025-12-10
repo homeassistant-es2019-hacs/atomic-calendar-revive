@@ -1,6 +1,5 @@
 import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
-import eslint from '@rollup/plugin-eslint';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
@@ -16,12 +15,10 @@ const plugins = [
 		jsnext: true,
 		main: true,
 	}),
-	eslint(),
 	commonjs(),
 	typescript(),
 	json(),
 	babel({
-		include: ['node_modules/lit*/**', 'node_modules/@lit/**'],
 		babelHelpers: 'bundled',
 		compact: true,
 		extensions: ['.js', '.ts'],
@@ -30,7 +27,7 @@ const plugins = [
 				'@babel/env',
 				{
 					modules: false,
-					targets: 'iOS 12, > 2.5%, not dead',
+					targets: '> 2.5%, not dead',
 				},
 			],
 		],
@@ -44,6 +41,7 @@ const plugins = [
 			'@babel/plugin-proposal-class-properties',
 			'@babel/plugin-transform-template-literals',
 			'@babel/plugin-transform-nullish-coalescing-operator',
+			'@babel/plugin-transform-logical-assignment-operators',
 		],
 	}),
 	terser(),
@@ -56,12 +54,20 @@ export default {
 	input: ['./src/index.ts'],
 	output: {
 		file: 'dist/atomic-calendar-revive.js',
-		format: 'umd',
+		format: 'esm',
 		name: 'AtomicCalendarRevive',
-		inlineDynamicImports: false,
+		inlineDynamicImports: true,
 	},
 	watch: {
 		clearScreen: false,
 	},
 	plugins: [...plugins],
+	onwarn: function (warning, handler) {
+        if (warning.code === 'THIS_IS_UNDEFINED') {
+            return;
+        }
+
+        // console.warn everything else
+        handler(warning);
+    }
 };
